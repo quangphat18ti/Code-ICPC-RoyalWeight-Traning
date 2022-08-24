@@ -33,12 +33,9 @@ class Trie_tree{
 
         vector<int> update_contain(Trie_node* u) {
             vector<int> vec_contain;
-
-            u -> contain = 0;
             for(int i = 0; i < MAX_TRIE_NODE; i++) {
                 Trie_node* v = u->child[i];
                 if(!v) continue;
-                u->contain += v->contain;
                 vec_contain.push_back(v->contain);
             }
 
@@ -70,18 +67,19 @@ class Trie_tree{
             for(int i = 0; i < MAX_TRIE_NODE; i++) {
                 Trie_node* v = u->child[i];
                 if(!v) continue;
+                int tam = v->contain;
                 dfs(v, ans);
+                u->contain -= (tam - v->contain);
             }
             vector<int> vec_contain = update_contain(u);
-
             sort(all(vec_contain));
-            int sum_contain = 0;
-            for(int& contain : vec_contain){
-                if(sum_contain + contain > k) ++ans;
-                else sum_contain += contain;
+            reverse(all(vec_contain));
+            for(int& contain : vec_contain) {
+                if(u->contain > k) {
+                    u->contain -= contain;
+                    ++ans;
+                }
             }
-
-            u->contain = sum_contain;
         }
 
         int solve() {
@@ -118,4 +116,3 @@ int main() {
         solve();
     }
 }
-
