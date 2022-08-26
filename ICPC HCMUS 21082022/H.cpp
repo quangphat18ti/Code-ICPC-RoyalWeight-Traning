@@ -85,57 +85,39 @@ vector<Edge> build_another_graph(vector<Edge> edges, vi &dist_start,vi &dist_end
     return ans;
 }
 
-void get_min_edge(int start, vector<int> &f, vector<int> &trace) {
-    f.assign(n + 1, INF);
-    trace.assign(n + 1, -1);
-
-    set<pii> min_set;
-    min_set.insert({f[start], start});
-
-    while(min_set.size()) {
-        pii tam = *min_set.begin();
-        min_set.erase(min_set.begin());
-        int u = tam.second;
-        if(tam.first != f[u]) continue;
-
-        for(pii nxt : adj[u]) {
-            int v = nxt.first;
-            int weight = nxt.second;
-
-            if(min(weight, f[u]) < f[v]) {
-                trace[v] = u;
-                f[v] = min(weight, f[u]);
-                min_set.insert({f[v], v});
-            }
-        } 
+void get_edge(int st, vi &f, vi& tr, int initVal, bool(*cmp)(int,int), int(*get)(int, int)) {
+    f.assign(n + 1, initVal);
+    tr.assign(n + 1, -1);
+    queue<int> que; que.push(st); 
+    while(!que.empty()) {
+        int u = que.front(); que.pop();
+        for(auto &[v, weight] : adj[u]) {
+            int val = get(f[v], get(f[u], weight));
+            if(cmp(val, f[v])) {
+                if(tr[v] == -1) que.push(v);
+                f[v] = val;
+                tr[v] = u;
+            } 
+        }
     }
 }
 
-void get_max_edge(int start, vector<int> &f, vector<int> &trace) {
-       f.assign(n + 1, -INF);
-       trace.assign(n + 1, - 1);
-       auto cmp = [](pii a, pii b) {return a.first > b.first;};
-       set<pii, decltype(cmp)> max_set(cmp);
+void build_max_min() {
+    auto cmp_min = [](int a, int b) -> bool { return a < b; };
+    auto cmp_max = [](int a, int b) -> bool { return a > b; };
+    auto get_min = [](int a, int b) -> int { return (a < b)?a:b; };
+    auto get_max = [](int a, int b) -> int { return (a > b)?a:b; };
 
-       max_set.insert({f[start], start});
-       while(max_set.size()) {
-            pii tam = *max_set.begin();
-            max_set.erase(max_set.begin());
 
-            int u = tam.second;
-            if(tam.fi != f[u]) continue;
+    vector<Edge> temp_edges = build_another_graph(edges, dist_1, dist_n, n); /// build graph from 1 -> n
+    build_adj(temp_edges);
+    get_edge(1, min_1, trace_min_1, INF, cmp_min, get_min); // get min from 1
+    get_edge(1, max_1, trace_max_1, -INF, cmp_max, get_max); // get max from 1
 
-            for(pii nxt : adj[u]) {
-                int v = nxt.first;
-                int weight = nxt.second;
-
-                if(f[v] < max(f[u], weight)) {
-                    trace[v] = u;
-                    f[v] = max(f[u], weight);
-                    max_set.insert({f[v], v});
-                }
-            }
-       }
+    temp_edges = build_another_graph(edges, dist_n, dist_1, 1);  /// build graph from n -> 1
+    build_adj(temp_edges);
+    get_edge(n, min_n, trace_min_n, INF, cmp_min, get_min);  // get min from n
+    get_edge(n, max_n, trace_max_n, -INF, cmp_max, get_max); // get max from m
 }
 
 vector<int> truyvet(int u, vector<int> &trace){
@@ -152,38 +134,30 @@ void concat(vector<int> &a, vector<int> b) {
 }
 
 void solve() {
-    vector<Edge> temp_edges = build_another_graph(edges, dist_1, dist_n, n);
-    build_adj(temp_edges);
-    get_min_edge(1, min_1, trace_min_1);
-    get_max_edge(1, max_1, trace_max_1);
-
-
-    temp_edges = build_another_graph(edges, dist_n, dist_1, 1);
-    build_adj(temp_edges);
-    get_min_edge(n, min_n, trace_min_n);
-    get_max_edge(n, max_n, trace_max_n);
-
+    vector<Edge> temp_edges = build_another_graph(edges, dist_1, dist_n, n); /// build graph from 1 -> n
+    
     int ans = -INF; 
-    for(int i = 1; i <= n; i++) {
-        ans = max(ans, max_n[i] - min_1[i]);
-        ans = max(ans, max_1[i] - min_n[i]);
+    for(auto &[u, v, w] : temp_edges) {
+        ans = max(ans, max(max_1[u], w) - min(min_n[v], w));
+        ans = max(ans, max(max_n[v], w) - min(min_1[u], w));
     }
+    // cout << ans << endl;
 
-    for(int i = 1; i <= n; i++) {
-       if(max_n[i] - min_1[i] == ans) {
-            vector<int> arr = truyvet(i, trace_min_1);
-            reverse(all(arr)); arr.pop_back();
-            concat(arr, truyvet(i, trace_max_n));   
-            cout << arr << endl;
+    for(auto &[u, v, w] : temp_edges) {
+        if(ans == max(max_1[u], w) - min(min_n[v], w)) {
+            vector<int> st1 = truyvet(u, trace_max_1); reverse(all(st1));
+            vector<int> st2 = truyvet(v, trace_min_n);
+            concat(st1, st2);
+            cout << st1 << endl;
             return;
-       } 
-       
-       if(max_1[i] - min_n[i] == ans) {
-            vector<int> arr = truyvet(i, trace_max_1);
-            reverse(all(arr)); arr.pop_back();
-            concat(arr, truyvet(i, trace_min_n));
+        }
+        else if(ans == max(max_n[v], w) - min(min_1[u], w)){
+            vector<int> st1 = truyvet(u, trace_min_1); reverse(all(st1));
+            vector<int> st2 = truyvet(v, trace_max_n); 
+            concat(st1, st2);
+            cout << st1 << endl;
             return;
-       }
+        }
     }
 }
 
@@ -196,6 +170,7 @@ int main() {
         init_data();
         bfs(1, dist_1);
         bfs(n, dist_n);
+        build_max_min();
         solve();
     }
 }
