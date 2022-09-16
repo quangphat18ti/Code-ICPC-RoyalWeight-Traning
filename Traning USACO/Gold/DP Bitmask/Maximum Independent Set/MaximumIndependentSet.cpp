@@ -1,187 +1,190 @@
 /**
- *		Author:		Duck
- *		created:	13-09-2022	22:22:01
-**/
+Link: https://judge.yosupo.jp/problem/maximum_independent_set
 
-
-/*
--duyet phan tap
--duyet 20 cai dau tien luu vao g1[]
--duyet 20 cai sau luu vao g2[]
-
--trang thai g2[i] lay duoc g1[1011] ==> se lay duoc g1[1001] hoac g1[1010]...
---> toi uu cac trang thai g1[] voi so luong bit tu be -> lon
--vd: g1[1011] = max(g1[1011] , g1[1010])...
-
--voi moi trang thai g2[i] se tim duoc dung 1 trang thai g1[j] thoa (so bit cua j la lon nhat)
--ma g1[j] da duoc toi uu 
-==> ket qua se la max(g2[i] + g1[j tim duoc])
+Đề:
+Cho đồ thị N đỉnh, M cạnh vô hướng
+Tìm tập đỉnh độc lập (mỗi đỉnh không có cạnh trực tiếp nối tới nhau) lớn nhất
 */
 
-#include <bits/stdc++.h>
-#define ll long long
-#define se second
-#define fi first
-#define fd(i, a, b) for (ll i = a; i >= b; i--)
-#define fu(i, a, b) for (ll i = a; i <= b; i++)
-#define SZ(x) ((int)(x).size())
-#define fastIO ios_base::sync_with_stdio(0), cin.tie(0), cout.tie(0);
-#define setbit(x , i) (x | (1LL << i))
-#define getbit(x , i) ((x >> i) & 1LL)
-#define offbit(x , i) (x & ~(1LL << i))
-#define __builtin_popcount __builtin_popcountll
-
+#include<bits/stdc++.h>
 using namespace std;
 
-const ll N = (ll)45;
-const ll M = (ll)2e6;
-typedef pair<ll , ll> pi;
+#define all(_x) _x.begin(), _x.end()
+#define fi first
+#define se second
+#define sz(_s) int(s.size())
 
-vector<ll> a[N];
-ll n , b[N][N] , m;
-pi g1[M] , g2[M];
-ll re1[N] , re2[N] , re12[N];
+#define setBit(x , i) (x | (1LL << i))
+#define getBit(x , i) ((x >> i) & 1)
+#define offBit(x , i) (x & ~(1LL << i))
+#define getPow2(x) (1 << x)
+#define countBit(x) __builtin_popcountll(x)
 
-void input()
-{
-    freopen("input.txt" , "r" , stdin);
-    freopen("out.txt" , "w" , stdout);
-}
 
-void mem()
-{
-    //bit[i] == 1 ==> co the lay thang i
-    fu(i,20,39)
-    {
-        ll mask = (1LL << 20) - 1;
-        fu(j,0,19)
-        {
-            if(b[i][j] == 1)
-            {
-                mask = offbit(mask , j);
+typedef long long ll;
+typedef vector<int> vi;
+typedef pair<int,int> pii;
+typedef vector<pii> vii;
+typedef vector<vector<int>> dsk;
+
+const int MAXN = 45;
+
+int n, m;
+dsk adj;
+int n1, n2;
+int bit[MAXN][2];
+
+class DpBitMask{
+public:
+    vector<int> f;
+    vector<int> mask_off;
+    vector<int> mask_on;
+    int n;
+
+    vector<int> node;
+    int group;
+
+    ~DpBitMask() {
+        f.clear();
+        mask_off.clear();
+        mask_on.clear();
+        node.clear();
+    }
+
+    void init(vector<int> &_node, int _group) {
+        node = _node;
+        n = node.size();
+        group = _group;
+
+        f.assign(getPow2(n), 0);
+
+        mask_on.assign(getPow2(n), 0);
+
+        mask_off.resize(getPow2(n));
+        mask_off[0] = getPow2(n) - 1;
+    }
+
+    void solve(){
+        for(int i = 1; i < getPow2(n); ++i) {
+            for(int j = 0; j < n; j++) {
+                if(!getBit(i, j)) continue;
+                
+                int oldMask = i ^ getPow2(j);
+                if(getBit( mask_off[oldMask], j )) {
+                    if(f[i] < f[oldMask] + 1) {
+                        f[i] = f[oldMask] + 1;
+                        mask_off[i] = mask_off[oldMask] & bit[node[j]][group];
+                        mask_on[i] = setBit(mask_on[oldMask], j);
+                    }
+                }
+                else {
+                    if(f[i] < f[oldMask]) {
+                        f[i] = f[oldMask];
+                        mask_off[i] = mask_off[oldMask];
+                        mask_on[i] = mask_on[oldMask];
+                    }
+                }
             }
         }
-        re12[i] = mask;
     }
-    fu(i,0,19)
-    {
-        ll mask = (1LL << 20) - 1;
-        fu(j,0,19)
-        {
-            if(b[i][j] == 1)
-            {
-                mask = offbit(mask , j);
-            }
-        }
-        re1[i] = mask;
-    }
-    fu(i,20,39)
-    {
-        ll mask = (1LL << 20) - 1;
-        fu(j,20,39)
-        {
-            if(b[i][j] == 1)
-            {
-                mask = offbit(mask , j-20);
-            }
-        }
-        re2[i] = mask;
-    }
+};
+DpBitMask dp1, dp2;
+
+int findGroup(int s) {
+    return s >= n/2;
+}
+int findStt(int s) {
+    return s - findGroup(s) * (n/2);
 }
 
-void maximize(pi &res , pi x)
-{
-    if(x.fi > res.fi)
-        res = x;
-    return ;
-}
-
-pi dp(ll mask , ll limit , pi *f , ll base , ll canreach , ll *re)
-{
-    if(__builtin_popcount(mask) >= limit)
-        return pi(limit , mask);
-    
-    if(f[mask] != pi(0 , 0))
-        return f[mask];
-
-    pi temp;
-    pi res = pi(__builtin_popcount(mask) , mask);
-    //first: amount
-    //se: bitmask
-
-    fu(i,0,limit-1)
-    {
-        //co the lay duoc i
-        if(getbit(mask , i) == 0 && getbit(canreach , i) == 1)
-        {
-            temp = dp(setbit(mask , i) , limit , f , base , canreach & re[i+base] , re);
-            maximize(res , temp);
-        }
-    }
-
-    return f[mask] = res;
-}
-
-void dissHead()
-{
-    dp(0 , min(20LL , n) , g1 , 0 , (1LL << 20) - 1 , re1);
-    fu(i,0,(1LL << 20) - 1)
-    {
-        ll mask = i;
-        fu(j,0,19)
-        {
-            maximize(g1[setbit(mask , j)] , g1[i]);
-        }
-    }
-}
-
-void dissTail()
-{
-    dp(0 , max(0LL , n - 20) , g2 , 20 , (1LL << 20) - 1 , re2);
-    //tim j thoa
-
-    pi res = pi(0 , 0);
-    fu(i,0,(1LL << 20) - 1)
-    {
-        ll mask = i , canreach = ((1LL << 20) - 1);
-        fu(j,0,19)
-        {
-            if(getbit(mask , j) == 1)
-            {
-                canreach = canreach & re12[j+20];
-            }
-        }
-        pi temp = pi(g2[i].fi + g1[canreach].fi , (g2[i].se << 20) | g1[canreach].se);
-        maximize(res , temp);
-    }
-    cout << res.fi << "\n";
-    fu(i,0,39)
-    {
-        if(getbit(res.se , i) == 1)
-            cout << i << " ";
-    }
-}
-
-int main()
-{
-    fastIO;
+void input_data(){
     cin >> n >> m;
-    fu(i,1,m)
-    {
-        ll x , y;
-        cin >> x >> y;
-        b[x][y] = 1;
-        b[y][x] = 1;
-    }   
+    n1 = n/2;
+    n2 = n - n/2;
 
-    mem();
-    dissHead();
-    dissTail();
+    adj.assign(n, vi(0));
+    for(int i = 0; i < m; i++) {
+        int u, v; cin >> u >> v;
+        adj[u].push_back(v);
+        adj[v].push_back(u);       
+    }       
 }
-/* stuff you should look for
-4 4
-0 1
-1 2
-2 3
-3 0
-*/
+
+void printBit(int bit, int k){
+    for(int i = 0; i < k; ++i) cout << getBit(bit, i); cout << endl;
+}
+
+void process() {
+    // bit[i][0] là trạng thái của i với nhóm 0
+    // bit[i][1] là trạng thái của i với nhóm 1
+
+    // Khởi tạo tất cả các bit đều bật
+    for(int i = 0; i < n; ++i) {
+        bit[i][0] = getPow2(n1) - 1;
+        bit[i][1] = getPow2(n2) - 1;
+    }    
+
+    // Nếu u gặp v thì tắt bit bằng STT của v trong nhóm
+    for(int u = 0; u < n; ++u) {
+
+        for(int v : adj[u]) {
+            int vGroup = findGroup(v);
+            int vStt = findStt(v);
+            bit[u][vGroup] = offBit(bit[u][vGroup], vStt); // tắt bit thứ Stt(v)
+        }
+    }
+} 
+
+void dpBitMask() {   
+    vector<int> nodeN2;
+    for(int i = n/2 ; i < n; ++i) nodeN2.push_back(i);
+    dp2.init(nodeN2, 1);
+    dp2.solve();
+}
+
+void solve() {
+    int ans = -1;
+    int bit1, bit2;
+
+    for(int i = 0; i < getPow2(n1); ++i) {
+        int mask1 = getPow2(n1) - 1;
+        int mask2 = getPow2(n2) - 1;
+        for(int j = 0; j < n1; ++j) {
+            if(getBit(i, j)) {
+                mask1 &= bit[j][0];
+                mask2 &= bit[j][1];
+            }
+        }
+
+        if(i != (i & mask1)) {
+            continue;
+        }
+
+        int res = countBit(i) + dp2.f[mask2];
+        if(ans < res) {
+            ans = res;
+            bit1 = i;
+            bit2 = mask2;
+        }
+    }
+
+    cout << ans << endl;
+    for(int i = 0; i < n1; i++) if(getBit(bit1, i)) cout << i << ' ';
+    for(int i = 0; i < n2; i++) {
+        if(getBit(dp2.mask_on[bit2], i)) cout << dp2.node[i] << ' ';
+    }
+}
+
+int main() {
+    freopen("input.txt", "r", stdin);
+    freopen("output.txt", "w", stdout);
+    int t; t = 1;
+    //cin >> t;
+    while(t--) {
+        input_data();
+        process();
+        dpBitMask();
+        solve();
+    }
+}
+
