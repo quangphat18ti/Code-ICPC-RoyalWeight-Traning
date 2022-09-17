@@ -22,7 +22,7 @@ Nhận xét 1:
         _ mid + 1 -> r: Tăng lên r + 1 (Nhóm 2)
     + Như vậy, ta sẽ tách 1 truy vấn 3 thành 2 truy vấn tách biệt nhau
 
-Nhận xét 2:
+Nhận xét 2: Khi rơi vào truy vấn 2
     + Mình chỉ cần quan tâm với truy vấn 1 gần nhất
     + Nếu có truy vấn 1 đè lên nó thì ta cũng không cần phải quan tâm tới truy vấn 3 gần nhất
 
