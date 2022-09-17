@@ -1,6 +1,5 @@
 /*
 Link: http://www.usaco.org/index.php?page=viewproblem2&cpid=625
-Link submiss: https://usaco.guide/problem-solutions/
 */
 
 
