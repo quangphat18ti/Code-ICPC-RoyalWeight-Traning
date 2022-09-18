@@ -1,4 +1,5 @@
 
+
 # APIO '09 P1 - Digging for Oil
 
 ## Link: 
@@ -14,8 +15,13 @@
 
 **Giới hạn:** 
 - $N,M\leq1500.$
-- $K\leq N,M.$
+- $K\leq min(N,M).$ 
 - $A_{i,j}\leq 500.$
+
+**Nhập:**
+- Dòng đầu tiên gồm $3$ số nguyên dương $N,M,K$. Dữ liệu đảm bảo tồn tại ít nhất $3$ hình vuông kích thước $K*$ $K$, trong ma trận $N*M$.
+- $N$ dòng tiếp theo, mỗi dòng gồm $M$ số nguyên dương là giá trị từng ô.
+
 ## Nhận xét:
 Vì cách xử lý theo chiều dọc hay chiều ngang nhìn chung giống nhau, nên chỉ xét $1$ chiều làm mẫu.
 
