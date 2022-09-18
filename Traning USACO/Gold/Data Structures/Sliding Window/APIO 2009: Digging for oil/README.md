@@ -11,6 +11,7 @@
 - Bạn được phép chọn $3$ hình vuông kích thước $K*K$, sao cho không có $2$ hình vuông bất kì giao nhau.
 
 **Yêu cầu:** Tìm tổng giá trị lớn nhất của 3 hình vuông.
+
 **Giới hạn:** 
 - $M,N\leq1500.$
 - $K\leq M,N.$
