@@ -1,4 +1,5 @@
 
+
 # IOI 2005 - A: Garden
 
 ## Link: 
@@ -19,6 +20,11 @@
 - $1\leq N, M \leq 250.$
 - $2\leq Q \leq 5000.$
 - $1\leq K \leq {Q \above 1pt 2}.$
+
+**Nhập:**
+- Dòng đầu gồm $2$ số nguyên dương $N,M$.
+- Dòng thứ hai gồm $2$ số nguyên dương $Q,K$.
+- $Q$ dòng tiếp theo, mỗi dòng là vị trí của ô muốn tăng giá trị thêm $1$.
 
 ## Hướng dẫn giải 1:
 - Nhìn nhanh mình có thể phát hiện ngay đây là một bài QHD.
